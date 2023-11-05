@@ -1,14 +1,11 @@
-# DNN for gait recognition in TensorFlow
+# AISC Project in TensorFlow by Shoubhik Chakraborty (219301286) & Prabhath Varma (219301268)
 
 In this project you can find implementation of deep neural network for **people identification from video** by the characteristic of their **gait**. The processing is very robust against various covariate factors such as *clothing*, *carrying conditions*, *shoe types* and so on. Feel free to use this network in your project or extend it in some way.
 
-## Requirements
-
-The code was written in `Python 3.5`, but it is probably also compatible with other versions. 
 
 ### Python packages
 
-- `TensorFlow 1.3` - [how to install](https://www.tensorflow.org/install/) (however, some parts of code may be compatible with lower version, report an issue if you would have any problems.)
+- `TensorFlow`
 - `numpy`, `scipy`, `PIL`
 
 ## Basic information about architecture
