@@ -1,60 +1,3 @@
-"""
-Copyright (c) 2016, Brendan Shillingford
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the 
-following conditions are met: 
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following 
-disclaimer. 
-
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the 
-following disclaimer in the documentation and/or other materials provided with the distribution. 
-
-3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote 
-products derived from this software without specific prior written permission. 
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
-INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
-----------------------------------------------------------------------------------------------------------------------
-The file was taken from https://github.com/bshillingford/python-torchfile and slightly modified
-----------------------------------------------------------------------------------------------------------------------
-
-Mostly direct port of the Lua and C serialization implementation to 
-Python, depending only on `struct`, `array`, and numpy.
-
-Supported types:
- * `nil` to Python `None`
- * numbers to Python floats, or by default a heuristic changes them to ints or
-   longs if they are integral
- * booleans
- * strings: read as byte strings (Python 3) or normal strings (Python 2), like
-   lua strings which don't support unicode, and that can contain null chars
- * tables converted to a special dict (*); if they are list-like (i.e. have
-   numeric keys from 1 through n) they become a python list by default
- * Torch classes: supports Tensors and Storages, and most classes such as 
-   modules. Trivially extensible much like the Torch serialization code.
-   Trivial torch classes like most `nn.Module` subclasses become 
-   `TorchObject`s. The `torch_readers` dict contains the mapping from class
-   names to reading functions.
- * functions: loaded into the `LuaFunction` `namedtuple`,
-   which simply wraps the raw serialized data, i.e. upvalues and code.
-   These are mostly useless, but exist so you can deserialize anything.
-
-(*) Since Lua allows you to index a table with a table but Python does not, we 
-    replace dicts with a subclass that is hashable, and change its
-    equality comparison behaviour to compare by reference.
-    See `hashable_uniq_dict`.
-
-Currently, the implementation assumes the system-dependent binary Torch 
-format, but minor refactoring can give support for the ascii format as well.
-"""
-
 TYPE_NIL = 0
 TYPE_NUMBER = 1
 TYPE_STRING = 2
@@ -76,16 +19,6 @@ LuaFunction = namedtuple('LuaFunction',
 
 
 class hashable_uniq_dict(dict):
-    """
-    Subclass of dict with equality and hashing semantics changed:
-    equality and hashing is purely by reference/instance, to match
-    the behaviour of lua tables.
-
-    Supports lua-style dot indexing.
-
-    This way, dicts can be keys of other dicts.
-    """
-
     def __hash__(self):
         return id(self)
 
@@ -101,8 +34,6 @@ torch_readers = {}
 
 def add_tensor_reader(typename, dtype):
     def read_tensor_generic(reader, version):
-        # source:
-        # https://github.com/torch/torch7/blob/master/generic/Tensor.c#L1243
         ndim = reader.read_int()
 
         # read size:
@@ -144,8 +75,6 @@ add_tensor_reader(b'torch.CudaDoubleTensor', dtype=np.float64)
 
 def add_storage_reader(typename, dtype):
     def read_storage(reader, version):
-        # source:
-        # https://github.com/torch/torch7/blob/master/generic/Storage.c#L244
         size = reader.read_long()
         return np.fromfile(reader.f, dtype=dtype, count=size)
     torch_readers[typename] = read_storage
@@ -165,15 +94,6 @@ add_storage_reader(b'torch.CudaDoubleStorage', dtype=np.float64)
 
 
 class TorchObject(object):
-    """
-    Simple torch object, used by `add_trivial_class_reader`.
-    Supports both forms of lua-style indexing, i.e. getattr and getitem.
-    Use the `torch_typename` method to get the object's torch class name.
-
-    Equality is by reference, as usual for lua (and the default for Python
-    objects).
-    """
-
     def __init__(self, typename, obj):
         self._typename = typename
         self._obj = obj
@@ -273,17 +193,7 @@ class T7Reader:
                  use_int_heuristic=True,
                  force_deserialize_classes=True,
                  force_8bytes_long=True):
-        """
-        Params:
-        * `fileobj` file object to read from, must be actual file object
-                    as it must support array, struct, and numpy
-        * `use_list_heuristic`: automatically turn tables with only consecutive
-                                positive integral indices into lists
-                                (default True)
-        * `use_int_heuristic`: cast all whole floats into ints (default True)
-        * `force_deserialize_classes`: deserialize all classes, not just the
-                                       whitelisted ones (default True)
-        """
+
         self.f = fileobj
         self.objects = {}  # read objects so far
 
@@ -419,10 +329,6 @@ class T7Reader:
 
 
 def load(filename, **kwargs):
-    """
-    Loads the given t7 file using default settings; kwargs are forwarded
-    to `T7Reader`.
-    """
     with open(filename, 'rb') as f:
         reader = T7Reader(f, **kwargs)
         return reader.read_obj()
