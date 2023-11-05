@@ -4,13 +4,7 @@ import torchfile as th
 
 
 def init_model_variables(file_path, trainable = True):
-    """
-    Initialize all model variables of a given torch model. The torch model pre-trained on MPII or MPII+LSP can be
-    downloaded from author's pages: https://www.adrianbulat.com/human-pose-estimation
 
-    :param file_path: path to serialized torch model (.th)
-    :param trainable: if the loaded variables should be trainable
-    """
 
     def load_conv2(obj, scope = 'Conv'):
         with tf.variable_scope(scope, reuse = False):
@@ -76,14 +70,6 @@ def init_model_variables(file_path, trainable = True):
 
 
 def human_pose_resnet(net, reuse = False, training = False):
-    """
-    Architecture of Part Detector network, as was described in https://arxiv.org/abs/1609.01743
-    
-    :param net: input tensor
-    :param reuse: whether reuse variables or not. Use False if the variables are initialized with init_model_variables
-    :param training: if the variables should be trainable. It has no effect if the 'reuse' param is set to True
-    :return: output tensor and dictionary of named endpoints
-    """
 
     def batch_normalization(input_net, act_f = None, scope = None):
         return layers.batch_norm(input_net, center = True, scale = True, epsilon = 1e-5,
@@ -176,33 +162,3 @@ def human_pose_resnet(net, reuse = False, training = False):
             # net = tf.nn.sigmoid(net)
 
         return net, end_points
-
-# with tf.Graph().as_default():
-#     init_model_variables('/home/margeta/data/hp.t7')
-#
-#     input_tensor = tf.placeholder(tf.float32, shape = (None, 256, 256, 3), name = 'input_image')
-#     hp_net = human_pose_resnet(input_tensor, reuse = True, training = False)
-#
-#     # config = tf.ConfigProto()
-#     # config.gpu_options.per_process_gpu_memory_fraction = 0.5
-#     # sess = tf.Session(config=config)
-#     sess = tf.Session()
-#     sess.run(tf.initialize_all_variables())
-#     print('Model was loaded!')
-#
-#     img = np.reshape(th.load('img').swapaxes(0, 1).swapaxes(1, 2), [-1, 256, 256, 3])
-#
-#     res = sess.run(hp_net, feed_dict = {input_tensor: img})
-#
-#     res = np.squeeze(res)
-#
-#     print(res.shape)
-#     print(www.shape)
-#     print(res[200,160,:])
-#     print(www[200,160,:])
-#
-# img = res[:,:,0]
-# fig = plt.figure()
-# plt.imshow(img)
-# fig.savefig('img.png')
-#
