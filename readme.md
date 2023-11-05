@@ -19,7 +19,7 @@ The network takes *raw RGB video frames* of a pedestrian as an input and produce
 
 Responsibility of the second sub-network - `GaitNN` defined in `gait_nn` module is the further processing of the generated spatial features into one-dimensional **pose descriptors** with the use of a residual convolutional network. **Temporal features** are then extracted across these *pose descriptors* with the use of the multilayer recurrent cells - **LSTM** or **GRU**. All temporal features are finally aggregated with **Average temporal pooling** into one-dimensional **identification vector** with good discriminatory properties. As already mentioned in the text above, the human identification vectors are linearly separable with each other and can therefore be classified with e.g. **linear SVM**.
 
-![Architecture](images/architecture.jpg)
+![Architecture](architecture.jpg)
 
 ## Gait recognition
 
@@ -83,7 +83,7 @@ If you want to get raw heat-maps mapping dense probability distribution for each
 
 If you run the script `dummy_pose_estimation.py`, the pose of a human in the dummy image */images/dummy.jpg* will be estimated and displayed in a new-created image */images/dummy_pose.jpg*. For doing this you must have the `matplotlib` package installed and have pre-trained model `MPII+LSP` stored in */models/MPII+LSP.ckpt* - for getting pre-trained models check the next section. The generated image in */images/dummy_pose.jpg* should look like this one:
 
-![Dummy_pose](images/dummy_pose_gt.jpg)
+![Dummy_pose](dummy_pose_gt.jpg)
 
 Printed probabilities of each estimate:
 
@@ -114,13 +114,13 @@ left wrist: 94.24%
 
 The checkpoint `MPII+LSP.ckpt` was trained on images from [MPII](http://human-pose.mpi-inf.mpg.de) and [LSP](http://www.comp.leeds.ac.uk/mat4saj/lsp.html) database. In the graph below you can see the average distance between predicted and desired joints on a **validation set of about 6 000 images**.
 
-![MPII+LSP-results](images/mpii-results.jpg)
+![MPII+LSP-results](mpii-results.jpg)
 
 #### The sample of correctly estimated poses
-![MPII-fit-human-pose](images/mpii-fit.jpg)
+![MPII-fit-human-pose](mpii-fit.jpg)
 
 #### The sample of incorrectly estimated poses
-![MPII-bad-fit-human-pose](images/mpii-fit-bad.jpg)
+![MPII-bad-fit-human-pose](mpii-fit-bad.jpg)
 
 ### HumanPoseNN: **Human 3.6m**
 
@@ -128,23 +128,23 @@ The checkpoint `MPII+LSP.ckpt` was trained on images from [MPII](http://human-po
 
 The checkpoint `Human3.6m.ckpt` was trained on the database [Human 3.6m](http://vision.imar.ro/human3.6m/description.php) and only on the **walking** sequences of peoples S1, S6, S7, S8, S9 and S11 (48 sequences). Person S5 (8 sequences) was used for a validation purposes and the average distance between predicted and desired joints is shown in the following graph. As you can see, errors are smaller compared to MPII+LSP. It is because desired poses in Human 3.6m was labeled more precisely using motion capture system, so the a trained network can more accurately estimate the human pose. The second reason is that Human 3.6m sequences are very monotonous and thus human pose estimation is less challenging. 
 
-![H36m-results](images/h36m-results.jpg)
+![H36m-results](h36m-results.jpg)
 
 ### GaitNN
 
 
 We use the same standard TUM GAID experiments as described e.g. in [this paper](https://arxiv.org/abs/1601.06931) (section *Experimental results on TUM GAID*) from F.M. Castro et al. that currently achieve state of the art results. In short, there are 2 main experiments. The goal in the first one is to identify 305 people (100 training, 150 validation, 155 testing) using 10 gait sequences for each person. These sequences catch person in three different covariate conditions: **Normal** walk, walking with **backpack** and walking with **coating shoes**. However, the people on all of these video-sequences wear the same clothing. To address the various clothing conditions, there is the second experiment. The goal of the second experiment is to identify 32 peoples (10 training, 6 validation, 16 testing) using 20 gait sequences for each person - first 10 was taken in January and the other 10 in April. The people have different clothing, usual for respective season. 
 
-![gait-time-ellapsed](images/time-elapsed.jpg)
+![gait-time-ellapsed](time-elapsed.jpg)
 
 The best performing model on the first experiment is `H3.6m-GRU-1` and on the second is `M+L-GRU-2`. The graphs bellow compares the performance of these models with already mentioned state of the art model [PFM](https://arxiv.org/abs/1601.06931) from F.M. Castro et al. The model `H3.6m-GRU-1` was trained only on the first experiment and on the second graph there is shown, how this model works on the validation set of the second experiment. As you can see, both models outperform PFM in the second experiment with a large margin. It means that these models are much more robust against clothing and time elapsed factors. 
 
-![Gait-experiment-1](images/ex1.jpg)
-![Gait-experiment-2](images/ex2.jpg)
+![Gait-experiment-1](ex1.jpg)
+![Gait-experiment-2](ex2.jpg)
 
 **Download**:<br>
-[H3.6m-GRU-1.ckpt](models/H3.6m-GRU-1.ckpt)<br>
-[M+L-GRU-2.ckpt](models/M+L-GRU-2.ckpt)
+[H3.6m-GRU-1.ckpt](H3.6m-GRU-1.ckpt)<br>
+[M+L-GRU-2.ckpt](M+L-GRU-2.ckpt)
 
 The name describe used architecture (model-RNNcell-layers), so e.g. checkpoint `H3.6m-GRU-1.ckpt` should be loaded in this way:
 ```python
