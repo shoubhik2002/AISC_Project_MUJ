@@ -11,21 +11,7 @@ def get_random_transform_params(input_shape, rotation_range = 0., height_shift_r
                                 shear_range = 0., zoom_range = (1, 1), horizontal_flip = False, resize_range = None,
                                 distortion_prob = 0., additive_gaussian_noise_range = None, multiplication_gaussian = 0,
                                 transform_colorspace_param = None, transform_colorspace_bounds = (-1, 1)):
-    """
-    This closure function returns generative function that gets random instance trough parameter and
-    together with closed input parameters generates random parameters for transformation matrix.
-
-    :param distortion_prob: Probability of the downsampling and upsampling of the image
-    :param resize_range: Defines uniform interval of downsampling factor
-    :param input_shape: Shape of images to be transformed with matrix with this parameters
-    :param rotation_range: Interval of rotation in degrees (used for in both direction)
-    :param height_shift_range: Value of two-sided interval of random shift in vertical direction
-    :param width_shift_range: Value of two-sided interval of random shift in horizontal direction
-    :param shear_range: Value of two-sided interval of random shear in horizontal direction
-    :param zoom_range: Tuple with 2 values representing range of random zoom (values > 1.0 is for zoom out)
-    :param horizontal_flip: Whether do random horizontal flip image
-    :return: Function that with given random instance generates random parameters for transformation matrix
-    """
+    
 
     def get_instance(rnd):
         U = rnd.uniform
@@ -61,29 +47,9 @@ def get_random_transform_params(input_shape, rotation_range = 0., height_shift_r
 
 
 def assemble_transformation_matrix(input_shape, theta = 0, tx = 0, ty = 0, shear = 0, z = 1):
-    """
-    Creates transformation matrix with given parameters. That resulting matrix has origin in centre of the image
-
-    :param input_shape: Shape of images to be transformed with matrix. Origin of transformation matrix is set
-                        in the middle of image.
-
-    :param theta: Rotation in radians
-    :param tx: Translation in X axis
-    :param ty: Translation in Y axis
-    :param shear: Shear in horizontal direction
-    :param z: Image zoom
-    :return: Transformation matrix
-    """
 
     def transform_matrix_offset_center(matrix, x, y):
-        """
-        Creates translation matrix from input matrix with origin in the centre of image
 
-        :param matrix: Input matrix
-        :param x: Width of the image
-        :param y: Height of the image
-        :return: Returns shifted input matrix with origin in [y/2, x/2]
-        """
         o_x = float(x) / 2 + 0.5
         o_y = float(y) / 2 + 0.5
         offset_matrix = np.array([[1, 0, o_x], [0, 1, o_y], [0, 0, 1]])
@@ -107,10 +73,8 @@ def assemble_transformation_matrix(input_shape, theta = 0, tx = 0, ty = 0, shear
                             [0, z, 0],
                             [0, 0, 1]])
 
-    # Assembling transformation matrix
     transform_matrix = np.dot(np.dot(np.dot(rotation_matrix, translation_matrix), shear_matrix), zoom_matrix)
 
-    # Set origin of transformation to center of the image
     h, w = input_shape[0], input_shape[1]
     transform_matrix = transform_matrix_offset_center(transform_matrix, h, w)
 
@@ -119,14 +83,6 @@ def assemble_transformation_matrix(input_shape, theta = 0, tx = 0, ty = 0, shear
 
 def transform(v, t_matrix, h_flip = False, add_noise = None, resize = None, resize_smooth = None,
               mul = None, color_m = None):
-    """
-    Transform image with (inverted) transformation matrix
-
-    :param v: Input image to be transformed
-    :param t_matrix: Transformation matrix
-    :param h_flip: Whether do horizontal flip
-    :return: Transformed image
-    """
 
     def apply_transform(x, transform_matrix, channel_index = 0, fill_mode = 'nearest', cval = 0.):
         x = np.rollaxis(x, channel_index, 0)
@@ -179,15 +135,6 @@ def transform(v, t_matrix, h_flip = False, add_noise = None, resize = None, resi
 
 
 def crop_data(img, labels, new_img_size, new_label_size = None, crop_label = True):
-    """
-    Both images and labels will be cropped to match the given size
-
-    :param img: Images to be cropped
-    :param labels: Labels to be cropped
-    :param new_img_size: New image size
-    :param new_label_size: New labels size
-    :return: Cropped image and labels
-    """
 
     img_size = img.shape[-3]
     r = to_int((img_size - new_img_size) / 2)
@@ -204,11 +151,6 @@ def crop_data(img, labels, new_img_size, new_label_size = None, crop_label = Tru
 
 
 def flip_body_joints(points):
-    """
-    Change semantic of labels after flip transformation - i.e. left leg will be now right and so on.
-
-    :param points: Body joints to be changed
-    """
 
     def swap(a, b):
         points[:, [a, b]] = points[:, [b, a]]
@@ -318,21 +260,6 @@ def generate_random_sequences(X, Y, sequence_size = 32, shift = 16, rseed = 0, f
 
 def generate_minibatches(X, Y = None, batch_size = 32, rseed = 0,
                          final_size = None, t_params_f = None, final_heatmap_size = None):
-    """
-    This function splits whole input batch of images into minibatches of given size. All images in batch are
-    transformed using affine transformations in order to prevent over-fitting during training.
-
-    :param X: Batch of input images to be divided. It has to be 4D tensor [batch, channel, height, width]
-    :param Y: Labels of input images (joint positions on heatmap). 3D tensor [batch, image dimension, joint].
-              E.g. joint with index 4 present in 10th image (i.e. index 9) that is in position [50, 80] is in
-              indexes: Y[9, :, 4] == [50, 80]
-    :param batch_size: Size of each mini-batch
-    :param rseed: Random seed
-    :param t_params_f: Function that generates parameters for transformation matrix (see get_random_transform_params)
-    :param final_size: Transformed images are cropped to match the given size
-    :param final_heatmap_size: Size of heatmaps
-    :return: Sequence of randomly ordered and transformed mini-batches
-    """
 
     rnd = np.random.RandomState(rseed)
 
