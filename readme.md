@@ -1,6 +1,6 @@
 # AISC Project in TensorFlow by Shoubhik Chakraborty (219301286) & Prabhath Varma (219301268)
 
-In this project you can find implementation of deep neural network for **people identification from video** by the characteristic of their **gait**. The processing is very robust against various covariate factors such as *clothing*, *carrying conditions*, *shoe types* and so on. Feel free to use this network in your project or extend it in some way.
+In this project you can find implementation of deep neural network for **people identification from video** by the characteristic of their **gait**. The processing is very robust against various covariate factors such as *clothing*, *carrying conditions*, *shoe types* and so on.
 
 
 ### Python packages
